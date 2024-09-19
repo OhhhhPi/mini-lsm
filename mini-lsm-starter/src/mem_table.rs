@@ -68,8 +68,8 @@ impl MemTable {
     }
 
     /// Get a value by key.
-    pub fn get(&self, _key: &[u8]) -> Option<Bytes> {
-        unimplemented!()
+    pub fn get(&self, key: &[u8]) -> Option<Bytes> {
+        self.map.get(key).map(|e| e.value().clone())
     }
 
     /// Put a key-value pair into the mem-table.
@@ -77,8 +77,10 @@ impl MemTable {
     /// In week 1, day 1, simply put the key-value pair into the skipmap.
     /// In week 2, day 6, also flush the data to WAL.
     /// In week 3, day 5, modify the function to use the batch API.
-    pub fn put(&self, _key: &[u8], _value: &[u8]) -> Result<()> {
-        unimplemented!()
+    pub fn put(&self, key: &[u8], value: &[u8]) -> Result<()> {
+        self.map.insert(Bytes::copy_from_slice(key), Bytes::copy_from_slice(value));
+        self.approximate_size.fetch_add(key.len() + value.len(), std::sync::atomic::Ordering::Relaxed);
+        Ok(())
     }
 
     /// Implement this in week 3, day 5.
